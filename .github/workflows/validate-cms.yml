@@ -4,6 +4,7 @@ on:
     paths:
       - 'index.html'
       - 'cms.html'
+      - 'cloud-cms.html'
       - 'assets/**'
       - '.github/workflows/validate-cms.yml'
   workflow_dispatch:
@@ -44,6 +45,10 @@ jobs:
               print(name,len(parser.all))
           PY
           for f in /tmp/index.html-*.js /tmp/cms.html-*.js; do node --check "$f"; done
+      - name: Confirm cloud CMS upload UI
+        run: |
+          grep -q 'id="uploadMedia"' cloud-cms.html
+          grep -q "db.storage.from('cms-media').upload" assets/cloud-cms.js
       - name: Confirm CMS bridge references
         run: |
           grep -q 'assets/site-cloud-content.js' index.html
