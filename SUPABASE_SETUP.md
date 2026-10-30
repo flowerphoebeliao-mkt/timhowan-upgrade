@@ -22,3 +22,12 @@
 - GitHub Pages 只能部署靜態頁面；資料庫、登入和持久化由 Supabase 提供。
 - 在未完成安全驗證前，請勿用真實顧客資料測試。
 - 不要把資料庫密碼、service_role key、JWT secret 寫入 GitHub 或對話。
+
+## 2026-10-30 進度：已設定 timhowan-cms2 公開金鑰
+
+- `assets/supabase-config.js` 已填入使用者提供的 Project URL 和 publishable key，無 secret/service_role key。
+- `cloud-cms.html` + `assets/cloud-cms.js` 是獨立的 Supabase Auth / RLS 內容測試後台，提供草稿、發布、下架和 JSON 編輯；原有 `cms.html` 完全保留，不代表原版 CMS 已完成雲端遷移。
+- GitHub Pages 工作流程已納入 cloud-cms.html，**必須合併 PR 並完成部署才會有測試網址**：`/timhowan-upgrade/cloud-cms.html`。
+- `index.html` 尚未讀取 Supabase；雲端發布不會即時更新現有前台。
+- 請先確認新專案的 `cms_members` / `cms_content` 和 admin RLS 都存在；使用者已在 SQL Editor 截圖顯示 admin。
+- 未經真實瀏覽器與線上 Supabase 實測；切勿將本階段當成正式上線驗收。
