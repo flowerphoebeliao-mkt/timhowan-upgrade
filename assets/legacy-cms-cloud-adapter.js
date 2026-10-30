@@ -1,5 +1,5 @@
 // Original CMS adapter: explicit authenticated cloud actions. Never stores credentials.
-import {db,getEditorial,saveContent,getRole} from './supabase-client.js';
+import {db,getEditorial,saveContent,getMyRole} from './supabase-client.js';
 const sectionMap={banners:'banner',news:'news',menu:'menu',stores:'store',pages:'recruitment'};
 const sectionNames={banners:'首頁 Banner',news:'最新消息',menu:'美味菜單',stores:'門市據點',pages:'頁面'};
 const keys=['banners','news','menu','stores'];
@@ -7,7 +7,7 @@ function notify(s,error=false){const el=document.getElementById('cloud-status');
 function makeSlug(k,item){return k+'-'+String(item.id).replace(/[^a-zA-Z0-9_-]/g,'')}
 function itemToRow(k,item){const {id,published,...data}=item;return {section:sectionMap[k],slug:makeSlug(k,item),title:item.title||'',sort_order:Number(item.order)||0,status:published?'published':'draft',data:{...data,legacy_id:id}}}
 function rowToItem(row){return {id:row.data?.legacy_id||row.slug,title:row.title,published:row.status==='published',order:row.sort_order,...row.data}}
-async function requireEditor(){const {data:{user},error}=await db.auth.getUser();if(error||!user)throw new Error('請先登入 Supabase');const role=await getRole();if(!['admin','publisher'].includes(role))throw new Error('帳號沒有編輯權限');return role}
+async function requireEditor(){const {data:{user},error}=await db.auth.getUser();if(error||!user)throw new Error('請先登入 Supabase');const role=await getMyRole();if(!['admin','publisher'].includes(role))throw new Error('帳號沒有編輯權限');return role}
 async function login(){const email=document.getElementById('cloud-email').value.trim(),password=document.getElementById('cloud-password').value;const {error}=await db.auth.signInWithPassword({email,password});if(error)throw error;notify('登入成功，現在可同步資料。')}
 async function uploadOne(k,item){if(item.image?.startsWith('data:'))throw new Error('「'+item.title+'」圖片仍為本機內嵌格式，請先改用公開 HTTPS 圖片網址或完成 Storage 上傳，避免雲端資料庫過大');return saveContent(itemToRow(k,item))}
 async function pushAll(){await requireEditor();const payload=window.thwLegacyCms;const k=payload.getSection();if(!keys.includes(k))throw new Error('請先進入 Banner／最新消息／菜單／門市列表');if(!confirm('將目前「'+sectionNames[k]+'」的本機內容寫入雲端（不會自動刪除雲端其他資料）。確定繼續？'))return;let n=0;for(const item of payload.getItems(k)){await uploadOne(k,item);n++}notify('已寫入雲端 '+n+' 筆。發布狀態由 Supabase 控制。')}
