@@ -19,7 +19,7 @@ jobs:
           node-version: '22'
       - name: Check JavaScript module syntax
         run: |
-          for f in assets/supabase-client.js assets/cms-cloud-actions.js assets/legacy-cms-cloud-adapter.js assets/site-cloud-content.js; do
+          for f in assets/supabase-client.js assets/cms-cloud-actions.js assets/legacy-cms-cloud-adapter.js assets/site-cloud-content.js assets/cloud-cms.js assets/frontend-cms-bridge.js; do
             node --check "$f"
           done
       - name: Extract and check inline scripts
