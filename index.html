@@ -120,7 +120,7 @@ function renderNewsPage(page){
  const items=window.thwCloudNewsActive?news.slice((currentNewsPage-1)*6,currentNewsPage*6):(currentNewsPage===1?news:Array.from({length:6},(_,i)=>['最新消息待上稿','第 '+currentNewsPage+' 頁・示意內容','活動快訊']));
  makeCards('newsCards',items);
  const pagination=document.getElementById('newsPagination');
- const pages=currentNewsPage<=3?[1,2,3]:currentNewsPage>=9?[8,9,10]:[currentNewsPage-1,currentNewsPage,currentNewsPage+1];
+ const pages=window.thwCloudNewsActive?Array.from({length:Math.min(3,newsPageCount)},(_,i)=>Math.min(Math.max(1,currentNewsPage-1),Math.max(1,newsPageCount-2))+i):(currentNewsPage<=3?[1,2,3]:currentNewsPage>=9?[8,9,10]:[currentNewsPage-1,currentNewsPage,currentNewsPage+1]);
  const parts=[`<button class=\"page-arrow\" aria-label=\"上一頁\" ${currentNewsPage===1?'disabled':''} data-page=\"${currentNewsPage-1}\"><span aria-hidden=\"true\">‹</span></button>`];
  if(pages[0]>1)parts.push(`<button class=\"page-number\" data-page=\"1\">1</button>`,`<span class=\"page-ellipsis\">···</span>`);
  pages.forEach(n=>parts.push(`<button class=\"page-number ${n===currentNewsPage?'active':''}\" data-page=\"${n}\" ${n===currentNewsPage?'aria-current=\"page\"':''}>${n}</button>`));
@@ -249,7 +249,7 @@ document.getElementById('menuPopup').addEventListener('click',e=>{if(e.target.id
 window.thwApplyCloudContent=function(payload){
  const cleanUrl=v=>{try{const u=new URL(String(v||''),location.href);return u.protocol==='https:'?u.href:''}catch(e){return ''}};
  const cleanText=v=>String(v??'');
- const banner=payload.banner||[];
+ const banner=(payload.banner||[]).filter(r=>cleanUrl(r.data?.image||r.data?.image_url));
  if(banner.length){
   const hero=document.getElementById('hero');
   hero.querySelectorAll('.hero-slide').forEach(el=>el.remove());
