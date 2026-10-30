@@ -1,3 +1,4 @@
+import {cloudWrite,cloudDelete,cloudRead,requireEditor} from './cms-cloud-actions.js';
 // Original CMS adapter: explicit authenticated cloud actions. Never stores credentials.
 import {db,getEditorial,saveContent,getMyRole} from './supabase-client.js';
 const sectionMap={banners:'banner',news:'news',menu:'menu',stores:'store',pages:'recruitment'};
