@@ -9,7 +9,16 @@ function makeSlug(k,item){return k+'-'+String(item.id).replace(/[^a-zA-Z0-9_-]/g
 function itemToRow(k,item){const {id,published,...data}=item;return {section:sectionMap[k],slug:makeSlug(k,item),title:item.title||'',sort_order:Number(item.order)||0,status:published?'published':'draft',data:{...data,legacy_id:id}}}
 function rowToItem(row){return {id:row.data?.legacy_id||row.slug,title:row.title,published:row.status==='published',order:row.sort_order,...row.data}}
 async function requireEditor(){const {data:{user},error}=await db.auth.getUser();if(error||!user)throw new Error('請先登入 Supabase');const role=await getMyRole();if(!['admin','publisher'].includes(role))throw new Error('帳號沒有編輯權限');return role}
-async function login(){const email=document.getElementById('cloud-email').value.trim(),password=document.getElementById('cloud-password').value;const {error}=await db.auth.signInWithPassword({email,password});if(error)throw error;notify('登入成功，現在可同步資料。')}
+async function hydrateAll(){
+ await requireEditor();
+ let count=0;
+ for(const k of keys){
+  const rows=await cloudRead(k);
+  if(rows.length){window.thwLegacyCms.replaceItems(k,rows);count+=rows.length}
+ }
+ notify('已從 Supabase 載入 '+count+' 筆內容。儲存、發布及下架會同步雲端。');
+}
+async function login(){const email=document.getElementById('cloud-email').value.trim(),password=document.getElementById('cloud-password').value;const {error}=await db.auth.signInWithPassword({email,password});if(error)throw error;await hydrateAll()}
 async function uploadOne(k,item){return cloudWrite(k,item)}
 async function pushAll(){await requireEditor();const payload=window.thwLegacyCms;const k=payload.getSection();if(!keys.includes(k))throw new Error('請先進入 Banner／最新消息／菜單／門市列表');if(!confirm('將目前「'+sectionNames[k]+'」的本機內容寫入雲端（不會自動刪除雲端其他資料）。確定繼續？'))return;let n=0;for(const item of payload.getItems(k)){await uploadOne(k,item);n++}notify('已寫入雲端 '+n+' 筆。發布狀態由 Supabase 控制。')}
 async function pullSection(){await requireEditor();const payload=window.thwLegacyCms;const k=payload.getSection();if(!keys.includes(k))throw new Error('請先進入可同步的內容列表');const rows=await getEditorial(sectionMap[k]);if(!confirm('從雲端讀取 '+rows.length+' 筆「'+sectionNames[k]+'」並覆蓋此瀏覽器的同分類資料？請先備份。'))return;payload.replaceItems(k,rows.map(rowToItem));notify('已從雲端載入 '+rows.length+' 筆，請確認列表。')}
