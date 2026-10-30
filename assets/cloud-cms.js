@@ -1,6 +1,7 @@
 import {db,signIn,signOut,getMyRole,getEditorial,saveContent} from './supabase-client.js';
 const $=id=>document.getElementById(id);
 let role=null,editId=null;
+const mimeExt={'image/jpeg':'jpg','image/png':'png','image/webp':'webp'};
 const editable=()=>role==='admin'||role==='publisher';
 const say=(msg)=>{$('message').textContent=msg};
 const statusText={draft:'草稿',published:'已發布',archived:'已下架'};
@@ -65,5 +66,28 @@ $('editForm').addEventListener('submit',async e=>{
   await saveContent(row);say('已儲存至 Supabase：'+row.title+'（'+statusText[row.status]+'）');
   $('editorPanel').hidden=true;await load();
  }catch(err){say('儲存失敗：'+err.message)}finally{btn.disabled=false}
+});
+$('uploadMedia').addEventListener('click',async()=>{
+ if(!editable())return say('沒有圖片上傳權限');
+ const file=$('mediaFile').files?.[0];
+ if(!file)return say('請先選擇圖片');
+ if(!mimeExt[file.type]||file.size>5*1024*1024)return say('僅接受 5 MB 以下的 JPG、PNG、WebP 圖片');
+ const btn=$('uploadMedia');btn.disabled=true;
+ try{
+  const {data:{user},error:authError}=await db.auth.getUser();
+  if(authError||!user)throw authError||Error('請先登入');
+  const bytes=new Uint8Array(16);crypto.getRandomValues(bytes);
+  const id=Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
+  const path=user.id+'/'+id+'.'+mimeExt[file.type];
+  const {error}=await db.storage.from('cms-media').upload(path,file,{contentType:file.type,upsert:false});
+  if(error)throw error;
+  const {data}=db.storage.from('cms-media').getPublicUrl(path);
+  const payload=JSON.parse($('payload').value);
+  if(!payload||Array.isArray(payload)||typeof payload!=='object')throw Error('JSON 必須是物件');
+  payload.image_url=data.publicUrl;
+  $('payload').value=JSON.stringify(payload,null,2);
+  $('mediaResult').textContent='上傳成功，圖片網址已加入 image_url。請按「儲存至雲端」保存內容。';
+  say('圖片上傳成功；請儲存內容。');
+ }catch(e){say('圖片上傳失敗：'+e.message)}finally{btn.disabled=false}
 });
 syncSession();

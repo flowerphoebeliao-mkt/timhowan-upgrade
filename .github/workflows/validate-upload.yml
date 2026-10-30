@@ -1,0 +1,33 @@
+name: Validate cloud CMS image upload
+on:
+  pull_request:
+    paths:
+      - 'assets/cloud-cms.js'
+      - 'cloud-cms.html'
+      - '.github/workflows/validate-upload.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript syntax
+        run: node --check assets/cloud-cms.js
+      - name: Check image upload UI wiring
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          import assert from 'node:assert/strict';
+          const html=readFileSync('cloud-cms.html','utf8');
+          const js=readFileSync('assets/cloud-cms.js','utf8');
+          for(const id of ['mediaFile','uploadMedia','mediaResult','payload'])assert.ok(html.includes('id="'+id+'"'),id+' missing in HTML');
+          assert.ok(js.includes("db.storage.from('cms-media').upload("),'storage upload missing');
+          assert.ok(js.includes('payload.image_url=data.publicUrl'),'image URL not assigned');
+          assert.ok(js.includes('5*1024*1024'),'5MB limit missing');
+          console.log('Cloud CMS upload wiring checks passed');
+          JS
