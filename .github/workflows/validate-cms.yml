@@ -1,0 +1,51 @@
+name: Validate CMS frontend integration
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'cms.html'
+      - 'assets/**'
+      - '.github/workflows/validate-cms.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript module syntax
+        run: |
+          for f in assets/supabase-client.js assets/cms-cloud-actions.js assets/legacy-cms-cloud-adapter.js assets/site-cloud-content.js; do
+            node --check "$f"
+          done
+      - name: Extract and check inline scripts
+        run: |
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          class Scripts(HTMLParser):
+              def __init__(self):
+                  super().__init__(); self.inside=False; self.code=[]; self.all=[]
+              def handle_starttag(self,tag,attrs):
+                  if tag=='script': self.inside=not dict(attrs).get('src')
+              def handle_endtag(self,tag):
+                  if tag=='script' and self.inside:
+                      self.all.append(''.join(self.code)); self.code=[]; self.inside=False
+              def handle_data(self,data):
+                  if self.inside: self.code.append(data)
+          for name in ['index.html','cms.html']:
+              parser=Scripts(); parser.feed(Path(name).read_text())
+              for i,code in enumerate(parser.all):
+                  Path('/tmp/'+name+'-'+str(i)+'.js').write_text(code)
+              print(name,len(parser.all))
+          PY
+          for f in /tmp/index.html-*.js /tmp/cms.html-*.js; do node --check "$f"; done
+      - name: Confirm CMS bridge references
+        run: |
+          grep -q 'assets/site-cloud-content.js' index.html
+          grep -q 'assets/legacy-cms-cloud-adapter.js' cms.html
+          grep -q 'thwCloud.write' cms.html
