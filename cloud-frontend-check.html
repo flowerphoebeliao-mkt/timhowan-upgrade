@@ -1,0 +1,23 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>添好運｜雲端前台資料驗證</title><style>body{font-family:Arial,"Microsoft JhengHei",sans-serif;margin:0;background:#f6f8f5;color:#164632}main{max-width:980px;margin:40px auto;padding:0 18px}h1{font-size:25px}section{background:white;border:1px solid #dce8df;border-radius:12px;margin:14px 0;padding:18px}h2{font-size:19px}article{border-top:1px solid #e4ebe5;padding:12px 0}small{color:#66786c}img{display:block;max-width:100%;max-height:240px;object-fit:contain;margin-top:10px}.warning{background:#fff6df;padding:14px;border-radius:9px}</style></head><body><main><h1>添好運｜Supabase 前台資料驗證</h1><p class="warning">此頁僅用來驗證「雲端 CMS 發布 → 公開網站讀取」，不是正式首頁；原本的首頁設計不會受到影響。只顯示已發布的資料，不執行資料庫中的 HTML 或腳本。</p><p id="status">讀取中…</p><div id="sections"></div><p><a href="./cloud-cms.html">返回雲端 CMS</a>　<a href="./index.html">正式首頁</a></p></main><script type="module">
+import {loadPublicContent,safeImageUrl,emitPublicContent,publicSections} from './assets/frontend-cms-bridge.js';
+const labels={banner:'首頁 Banner',brand_story:'品牌故事',news:'最新消息',menu:'美味菜單',store:'門市據點',recruitment:'加入我們',contact:'聯絡我們'};
+const host=document.getElementById('sections'),status=document.getElementById('status');
+try {
+ const result=await loadPublicContent();emitPublicContent(result);
+ let count=0,errors=0;
+ for(const section of publicSections){
+  const box=document.createElement('section'),heading=document.createElement('h2');
+  heading.textContent=labels[section];box.append(heading);
+  const {rows,error}=result[section];if(error){errors++;const p=document.createElement('p');p.textContent='讀取失敗：'+error;box.append(p)}
+  else if(!rows.length){const p=document.createElement('p');p.textContent='尚無已發布內容';box.append(p)}
+  for(const row of rows){
+   count++;const article=document.createElement('article'),title=document.createElement('strong');title.textContent=row.title||row.slug;article.append(title);
+   const detail=document.createElement('p');detail.textContent=String(row.data?.description||row.data?.subtitle||row.data?.text||'');article.append(detail);
+   const src=safeImageUrl(row.data?.image_url||row.data?.image||row.data?.src);
+   if(src){const img=document.createElement('img');img.src=src;img.alt=row.title||'';img.loading='lazy';article.append(img)}
+   const meta=document.createElement('small');meta.textContent='分類：'+section+'｜識別：'+row.slug;article.append(meta);box.append(article);
+  }host.append(box);
+ }
+ status.textContent='讀取完成：'+count+' 筆已發布內容'+(errors?'，'+errors+' 個分類讀取失敗':'');
+}catch(e){status.textContent='雲端讀取失敗：'+e.message}
+</script></body></html>
