@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>添好運 CMS｜雲端管理測試</title>
+<style>
+:root{font-family:Arial,"Noto Sans TC",sans-serif;color:#173d2d;background:#f6f8f5}*{box-sizing:border-box}
+body{margin:0}header{background:#006747;color:#fff;padding:18px max(20px,calc((100vw - 1080px)/2));display:flex;align-items:center;justify-content:space-between;gap:12px}
+main{max-width:1080px;margin:30px auto;padding:0 20px}.panel{background:#fff;border:1px solid #dce6df;border-radius:14px;padding:24px;margin-bottom:18px}
+h1{font-size:22px;margin:0}h2{font-size:20px}label{display:block;font-weight:700;margin:14px 0 5px}
+input,textarea,select{width:100%;padding:11px;border:1px solid #b8cbbf;border-radius:7px;font:inherit}textarea{min-height:170px}
+button{background:#006747;color:white;border:0;border-radius:7px;padding:10px 16px;font-weight:700;cursor:pointer}button:disabled{opacity:.45}
+button.secondary{background:#e8f0eb;color:#006747}button.danger{background:#9a3737}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}.toolbar select{max-width:240px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.note{background:#fff8e4;padding:14px;border-radius:8px;line-height:1.7}
+.item{border-bottom:1px solid #e5ece7;padding:12px 0;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.item small{color:#667c6e}#message{white-space:pre-wrap}a{color:inherit}
+[hidden]{display:none!important}@media(max-width:700px){.grid{grid-template-columns:1fr}.item{align-items:flex-start;flex-direction:column}}
+</style></head><body>
+<header><h1>添好運｜雲端 CMS 測試</h1><a href="./cms.html">原版 CMS Demo</a></header>
+<main>
+<section class="panel note">此頁是 Supabase 真實登入與內容資料測試介面，尚未取代原版 CMS 編輯器。發布內容目前儲存至雲端，但既有首頁尚未接上讀取。請勿輸入正式顧客資料或任意 HTML／腳本。</section>
+<section class="panel" id="loginPanel"><h2>管理員登入</h2><form id="loginForm">
+<label for="email">Email</label><input id="email" type="email" autocomplete="username" required>
+<label for="password">密碼</label><input id="password" type="password" autocomplete="current-password" required>
+<p><button type="submit">登入 Supabase</button></p></form></section>
+<section class="panel" id="adminPanel" hidden>
+<div class="toolbar"><strong id="identity"></strong><button class="secondary" id="logout">登出</button></div>
+<h2>雲端內容管理</h2>
+<div class="toolbar"><select id="section"><option value="banner">首頁 Banner</option><option value="brand_story">品牌故事</option><option value="news">最新消息</option><option value="menu">美味菜單</option><option value="store">門市據點</option><option value="recruitment">加入我們</option><option value="contact">聯絡我們</option><option value="site_settings">網站設定（僅管理員）</option></select>
+<button id="refresh" class="secondary">重新整理</button><button id="new">新增內容</button></div>
+<div id="items"></div></section>
+<section class="panel" id="editorPanel" hidden><h2 id="editorHeading">編輯內容</h2>
+<form id="editForm"><div class="grid"><div><label for="slug">識別代碼（英文或數字）</label><input id="slug" required pattern="[a-z0-9][a-z0-9_-]*"></div>
+<div><label for="title">標題</label><input id="title" required></div>
+<div><label for="sort">排序</label><input id="sort" type="number" value="0"></div>
+<div><label for="status">狀態</label><select id="status"><option value="draft">草稿（不公開）</option><option value="published">發布（公開顯示於 API）</option><option value="archived">下架</option></select></div></div>
+<label for="payload">內容欄位（JSON 格式）</label><textarea id="payload" spellcheck="false">{}</textarea>
+<p class="note">目前為結構化內容測試：請填入合法 JSON。圖片上傳及原版視覺化編輯器尚未串接。公開內容請勿放入密碼、客戶個資或秘密金鑰。</p>
+<div class="toolbar"><button type="submit" id="save">儲存至雲端</button><button type="button" id="cancel" class="secondary">取消</button></div></form></section>
+<section class="panel" aria-live="polite"><strong>系統訊息</strong><p id="message">尚未登入。</p></section>
+</main><script type="module" src="./assets/cloud-cms.js"></script></body></html>
