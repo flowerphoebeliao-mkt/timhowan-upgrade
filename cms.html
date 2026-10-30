@@ -348,4 +348,7 @@ function closeRecruitCompose(){document.getElementById('recruit-compose-overlay'
 function recruitMailData(){return {to:document.getElementById('recruit-to')?.value||'',subject:document.getElementById('recruit-subject')?.value||'',body:document.getElementById('recruit-message')?.value||''}}
 function launchRecruitMail(){const d=recruitMailData();window.location.href='mailto:'+encodeURIComponent(d.to)+'?subject='+encodeURIComponent(d.subject)+'&body='+encodeURIComponent(d.body)}
 async function copyRecruitCompose(){const d=recruitMailData(),v='收件人：'+d.to+'\n主旨：'+d.subject+'\n\n'+d.body;try{await navigator.clipboard.writeText(v);alert('信件內容已複製，可貼到 Gmail、Outlook 或其他郵件服務。')}catch(e){const t=document.createElement('textarea');t.value=v;document.body.appendChild(t);t.select();const ok=document.execCommand('copy');t.remove();alert(ok?'信件內容已複製。':'無法自動複製，請手動選取信件內容。')}}
-</script></body></html>
+
+// Cloud adapter only reads/writes explicit CMS categories; no automatic replacement of local data.
+window.thwLegacyCms={getSection:()=>current,getItems:k=>structuredClone(db[k]||[]),replaceItems:(k,items)=>{if(!['banners','news','menu','stores'].includes(k))throw Error('unsupported category');db[k]=items;if(!save())throw Error('無法保存至瀏覽器');render()}};
+</script><script type="module" src="./assets/legacy-cms-cloud-adapter.js"></script></body></html>
