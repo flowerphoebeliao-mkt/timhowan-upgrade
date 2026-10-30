@@ -114,7 +114,7 @@ footer .social-icons{display:flex;gap:10px;flex-wrap:wrap;align-items:center;mar
 <script>
 const featureNames=['勇於開拓','大方好客','腳踏實地','手之精湛','真誠待客','值得信賴'];const featureDescriptions=['我們熱衷於突破框架，用心研發每道點心，並以真誠款待每一位賓客。','我們相信分享美味的喜悅，讓每一場聚餐都成為值得回味的時光。','我們堅持品質與初心，以細緻工序呈現經典港點的美好。','以時間、耐心與手藝，將每一道點心做到最好。','熱情迎接每一位顧客，提供溫暖貼心的用餐體驗。','從每一道點心到每一次服務，始終堅持承諾。'];let featureOffset=0;function featureSlide(n){featureOffset=(featureOffset+n+6)%6;renderFeatures()}function renderFeatures(){document.getElementById('featureCopy').innerHTML=featureNames.map((_,i)=>{let j=(i+featureOffset)%6;return `<div><b>${featureNames[j]}</b><p>${featureDescriptions[j]}</p></div>`}).join('')}if(document.getElementById('featureCopy')) renderFeatures();
 const news=[['秋醞好運新菜登場','全新四品等你來嚐鮮','新品與季節限定'],['我是新聞標題新聞標題新聞標題新聞標題','報導日期:2026/10/13','媒體報導'],['我是活動標題活動標題活動標題','活動日期:2026/10/13–2026/11/30','活動快訊'],['秋醞好運新菜登場','全新四品等你來嚐鮮','新品與季節限定'],['我是新聞標題新聞標題新聞標題新聞標題','報導日期:2026/10/13','媒體報導'],['會員好康活動消息','活動日期:2026/10/13–2026/11/30','會員專屬優惠']];const menu=[['人氣招牌','經典美味'],['正宗港點','匠心工藝'],['主食與甜點','鹹甜好滋味']];function thwEscape(value){return String(value??'').replace(/[&<>\"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[ch]))}
-function makeCards(id,items){document.getElementById(id).innerHTML=items.map(([title,sub,category],cardIndex)=>`<article class="card"><div class="card-media">圖片<button onclick="${id==='newsCards'?`openNewsArticle(${cardIndex+(currentNewsPage-1)*6})`:`openMenuPopup(${cardIndex})`}">看更多</button></div><div class="card-body">${id==='newsCards'?`<span class="news-category">${thwEscape(category||'活動快訊')}</span>`:''}<h3>${thwEscape(title)}</h3><p>${thwEscape(sub)}</p></div></article>`).join('')}makeCards('menuCards',menu);
+function makeCards(id,items){document.getElementById(id).innerHTML=items.map(([title,sub,category,imageUrl],cardIndex)=>`<article class="card"><div class="card-media">${id==='newsCards'&&imageUrl?`<img src="${thwEscape(imageUrl)}" alt="${thwEscape(title)}" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.remove()">`:'圖片'}<button onclick="${id==='newsCards'?`openNewsArticle(${cardIndex+(currentNewsPage-1)*6})`:`openMenuPopup(${cardIndex})`}">看更多</button></div><div class="card-body">${id==='newsCards'?`<span class="news-category">${thwEscape(category||'活動快訊')}</span>`:''}<h3>${thwEscape(title)}</h3><p>${thwEscape(sub)}</p></div></article>`).join('')}makeCards('menuCards',menu);
 let newsPageCount=10;let currentNewsPage=1;
 function renderNewsPage(page){
  currentNewsPage=Math.max(1,Math.min(newsPageCount,page));
@@ -196,6 +196,7 @@ function openNewsArticle(index){
  document.getElementById('articlePopupDate').textContent=record.date;
  document.getElementById('articlePopupBody').innerHTML=record.body;
  if(record.plainBody!==undefined){document.getElementById('articlePopupBody').textContent=record.plainBody;}
+ if(record.image){const photo=document.createElement('img');photo.src=record.image;photo.alt=record.title;photo.style.cssText='display:block;width:100%;max-height:480px;object-fit:cover;border-radius:12px;margin:0 0 24px';photo.onerror=()=>photo.remove();document.getElementById('articlePopupBody').prepend(photo);}
  const overlay=document.getElementById('articleOverlay');
  overlay.classList.add('is-open');overlay.setAttribute('aria-hidden','false');
  overlay.querySelector('.article-dialog').scrollTop=0;
@@ -265,11 +266,11 @@ window.thwApplyCloudContent=function(payload){
  const cloudNews=payload.news||[];
  if(cloudNews.length){
   window.thwCloudNewsActive=true;
-  news.splice(0,news.length,...cloudNews.map(r=>[cleanText(r.title),cleanText(r.data?.subtitle||r.data?.date||''),cleanText(r.data?.category||'活動快訊')]));
+  news.splice(0,news.length,...cloudNews.map(r=>[cleanText(r.title),cleanText(r.data?.subtitle||r.data?.date||''),cleanText(r.data?.category||'活動快訊'),cleanUrl(r.data?.image||r.data?.image_url)]));
   articleExamples.splice(0,articleExamples.length,...cloudNews.map(r=>{
    const parsed=new DOMParser().parseFromString(cleanText(r.data?.body||''),'text/html');
    const body=parsed.body.textContent||'';
-   return {title:cleanText(r.title),category:cleanText(r.data?.category||''),date:cleanText(r.data?.date||''),body:'<p></p>',plainBody:body};
+   return {title:cleanText(r.title),category:cleanText(r.data?.category||''),date:cleanText(r.data?.date||''),body:'<p></p>',plainBody:body,image:cleanUrl(r.data?.image||r.data?.image_url)};
   }));
   newsPageCount=Math.max(1,Math.ceil(news.length/6));
   renderNewsPage(1);
