@@ -1,0 +1,46 @@
+/* Touch navigation and Safari viewport/scrolling support. */
+.nav-icon-close { display: none; }
+.mobile-toggle[aria-expanded="true"] .nav-icon-open { display: none; }
+.mobile-toggle[aria-expanded="true"] .nav-icon-close { display: inline; }
+button, a { touch-action: manipulation; }
+button:focus-visible, a:focus-visible { outline: 2px solid #006b4b; outline-offset: 3px; }
+.test-site-notice { font-size: 12px; text-align: center; padding: 12px 0; margin: 0; }
+.menu-popup-head { flex-shrink: 0; }
+.menu-popup-body { flex: 1; min-height: 0; }
+.article-dialog, .location-panel, .menu-popup-body, .menu-dish-detail, .privacy-body {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+@media (max-width: 760px) {
+  header { z-index: 200; }
+  .mobile-toggle {
+    display: flex; align-items: center; justify-content: center;
+    min-width: 44px; min-height: 44px; padding: 0; -webkit-appearance: none;
+  }
+  .nav { z-index: 210; max-height: calc(var(--viewport-height, 100vh) - 62px); overflow-y: auto; }
+  .nav.open { display: flex; }
+  .location-panel { height: var(--viewport-height, 100vh); max-height: var(--viewport-height, 100vh); }
+  .contact-form input, .contact-form select, .contact-form textarea { font-size: 16px; }
+}
+@media (max-width: 700px) {
+  .menu-popup-panel { height: var(--viewport-height, 100vh); }
+}
+@media (max-width: 650px) {
+  .article-dialog { max-height: var(--viewport-height, 100vh); }
+}
+@supports (height: 100dvh) {
+  @media (max-width: 760px) {
+    .nav { max-height: calc(100dvh - 62px); }
+    .location-panel { height: 100dvh; max-height: 100dvh; }
+  }
+  @media (max-width: 700px) { .menu-popup-panel { height: 100dvh; } }
+  @media (max-width: 650px) { .article-dialog { max-height: 100dvh; } }
+}
+@media (max-width: 760px) and (orientation: landscape) {
+  .menu-popup-head { padding-top: 10px; padding-bottom: 8px; }
+  .menu-popup-head h2 { margin: 0 0 6px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto !important; }
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
